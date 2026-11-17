@@ -28,9 +28,9 @@ export async function writeArchive({ archiveDir, entries, blockCache, mediaFiles
       if (source[key] !== undefined) data[key] = source[key];
     }
     if (source.cells) data.cells = source.cells.map(rich);
-    if (source.url) data.url = publicHref(source.url);
+    if (source.url && !mediaFiles.has(id)) data.url = publicHref(source.url);
     if (type === 'link_to_page' && byId.has(source.page_id?.replaceAll('-', ''))) data.page_id = source.page_id;
-    if (mediaKinds.has(type)) {
+    if (mediaKinds.has(type) || mediaFiles.has(id)) {
       data.local = mediaFiles.get(id);
       if (!data.local) throw new Error(`Missing downloaded attachment ${id}`);
       if (source.name) data.name = source.name;
@@ -116,7 +116,7 @@ function markdownBlocks(blocks, snapshot, tableCell = false) {
       case 'divider': result = '---'; break;
       case 'image': result = `![${(value.caption ?? []).map(item => mdEscape(item.plain_text)).join('')}](assets/${value.local})${caption ? `\n\n${caption}` : ''}`; break;
       case 'pdf': case 'file': case 'video': case 'audio': result = `[${mdEscape(value.name || '打开附件')}](assets/${value.local})${caption ? `\n\n${caption}` : ''}`; break;
-      case 'bookmark': case 'embed': case 'link_preview': result = value.url ? `[${mdEscape(value.url)}](<${markdownHref(value.url)}>)` : ''; break;
+      case 'bookmark': case 'embed': case 'link_preview': result = value.local ? `[打开嵌入内容](assets/${value.local})` : value.url ? `[${mdEscape(value.url)}](<${markdownHref(value.url)}>)` : ''; break;
       case 'child_page': case 'link_to_page': {
         const id = (block.type === 'child_page' ? block.id : value.page_id)?.replaceAll('-', '');
         const child = snapshot.entries.find(entry => entry.id === id);

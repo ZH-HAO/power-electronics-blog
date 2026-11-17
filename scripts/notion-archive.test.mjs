@@ -13,12 +13,14 @@ test('archive preserves notes, nested content, local attachments and offline reb
     const archiveDir = path.join(root, 'content/notion');
     await fs.mkdir(path.join(archiveDir, 'assets'), { recursive: true });
     await fs.writeFile(path.join(archiveDir, 'assets/image.png'), Buffer.from([1, 2, 3]));
+    await fs.writeFile(path.join(archiveDir, 'assets/interactive.html'), '<h1>Interactive</h1>');
     await fs.writeFile(path.join(archiveDir, 'assets/stale.png'), 'old');
     await fs.writeFile(path.join(archiveDir, 'removed.md'), 'old note');
     const rich = text => [{ type: 'text', plain_text: text, text: { content: text } }];
     const blocks = [
       { id: 'p', type: 'paragraph', paragraph: { rich_text: [...rich('正文'), { ...rich('另一篇')[0], href: 'https://www.notion.so/child' }, { ...rich('未授权链接')[0], href: 'https://www.notion.so/private' }] }, created_by: { id: 'PRIVATE_USER' } },
       { id: 'i', type: 'image', image: { file: { url: 'https://example.com/file?X-Amz-Signature=SECRET' }, caption: rich('配图') } },
+      { id: 'embed', type: 'embed', embed: { url: 'https://example.com/interactive.html?X-Amz-Signature=SECRET' } },
       { id: 't', type: 'toggle', has_children: true, toggle: { rich_text: rich('推导') } },
       { id: 'table', type: 'table', has_children: true, table: { has_column_header: true } },
       { id: 'child', type: 'child_page', child_page: { title: '子页' } }
@@ -31,7 +33,7 @@ test('archive preserves notes, nested content, local attachments and offline reb
       ['table', [{ id: 'row', type: 'table_row', table_row: { cells: [rich('符号'), rich('解释')] } }]]
     ]);
     const config = { pages: [], trees: [{ id: 'root', slug: 'graph-theory', category: '图论', summary: '学习笔记' }] };
-    const args = { archiveDir, entries: [entry, child], blockCache, mediaFiles: new Map([['i', 'image.png']]), config, publicHref: href => href === 'https://www.notion.so/child' ? 'child.html' : null };
+    const args = { archiveDir, entries: [entry, child], blockCache, mediaFiles: new Map([['i', 'image.png'], ['embed', 'interactive.html']]), config, publicHref: href => href === 'https://www.notion.so/child' ? 'child.html' : null };
     await writeArchive(args);
     const first = await fs.readFile(path.join(archiveDir, 'snapshot.json'), 'utf8');
     assert.doesNotMatch(first, /PRIVATE_USER|X-Amz|SECRET|notion\.so\/private/);
@@ -59,6 +61,8 @@ test('archive preserves notes, nested content, local attachments and offline reb
     assert.match(output, /V_o = D V_i/);
     assert.match(output, /child\.html/);
     assert.match(output, /<a href="child.html">另一篇<\/a>/);
+    assert.match(output, /href="assets\/interactive.html"/);
+    assert.equal(await fs.readFile(path.join(root, 'dist/notion/assets/interactive.html'), 'utf8'), '<h1>Interactive</h1>');
     assert.deepEqual(await fs.readFile(path.join(root, 'dist/notion/assets/image.png')), Buffer.from([1, 2, 3]));
     await assert.rejects(fs.access(path.join(root, 'dist/notion/removed.html')));
     await assert.rejects(fs.access(path.join(root, 'dist/notion/assets/old.png')));

@@ -146,7 +146,7 @@ async function saveMedia(block, kind, slug) {
     await fs.copyFile(path.join(archiveDir, 'assets', name), path.join(directory, name));
     return `assets/${name}`;
   }
-  const source = value.file?.url ?? value.external?.url;
+  const source = value.file?.url ?? value.external?.url ?? value.url;
   if (!source) throw new Error(`${kind} ${block.id} has no downloadable URL.`);
   const { data, contentType } = await downloadMedia(source);
   const type = contentType.split(';')[0].toLowerCase();
@@ -237,6 +237,11 @@ async function renderBlock(block, entry) {
     }
     case 'bookmark': case 'embed': case 'link_preview': {
       const url = value.url;
+      if (value.local || url && /[?&]X-Amz-(?:Signature|Credential)=/i.test(url)) {
+        const src = await saveMedia(block, block.type, entry.slug);
+        html = `<p class="file-link"><a href="${escapeHtml(src)}" target="_blank" rel="noopener">↗ 打开嵌入内容</a></p>`;
+        break;
+      }
       const href = publicHref(url);
       html = href ? `<p><a href="${escapeHtml(href)}">${escapeHtml(url)}</a></p>` : `<p>${escapeHtml(url ?? '')}</p>`;
       break;
