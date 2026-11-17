@@ -2,9 +2,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import http from 'node:http';
 import https from 'node:https';
+import { writeArchive, readArchive } from './notion-archive.mjs';
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
+const archiveDir = path.join(root, 'content', 'notion');
+const offline = process.argv.includes('--from-repository');
+const blockCache = new Map();
+const mediaFiles = new Map();
 const assetVersion = process.env.GITHUB_SHA?.slice(0, 12) ?? 'local';
 const config = JSON.parse(await fs.readFile(path.join(root, 'content/notion-pages.json'), 'utf8'));
 const pages = config.pages ?? [];
@@ -12,7 +17,7 @@ const trees = config.trees ?? [];
 if (!Array.isArray(pages) || !Array.isArray(trees)) throw new Error('Publication config needs pages and trees arrays.');
 if (!pages.length && !trees.length) process.exit(0);
 const token = process.env.NOTION_TOKEN;
-if (!token) throw new Error('NOTION_TOKEN is required to build approved Notion content.');
+if (!offline && !token) throw new Error('NOTION_TOKEN is required to sync approved Notion content. Use --from-repository to build saved content without a token.');
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cleanId = id => String(id ?? '').replaceAll('-', '').toLowerCase();
 const validId = id => /^[0-9a-f]{32}$/.test(cleanId(id));
@@ -39,6 +44,8 @@ async function notion(endpoint) {
 }
 
 async function children(id) {
+  if (blockCache.has(id)) return blockCache.get(id);
+  if (offline) throw new Error(`Missing saved child blocks: ${id}`);
   const all = [];
   let cursor;
   do {
@@ -48,6 +55,7 @@ async function children(id) {
     all.push(...data.results);
     cursor = data.has_more ? data.next_cursor : undefined;
   } while (cursor);
+  blockCache.set(id, all);
   return all;
 }
 
@@ -65,7 +73,7 @@ function addEntry(id, slug, category, summary, parentId, treeSlug, page, blocks)
   return entry;
 }
 
-for (const item of pages) {
+for (const item of offline ? [] : pages) {
   if (!validId(item.id) || !validSlug(item.slug)) throw new Error('Every approved page needs a valid id and slug.');
   const page = await notion(`pages/${item.id}`);
   addEntry(item.id, item.slug, item.category || 'Notion精选', item.summary, null, null, page, await children(item.id));
@@ -85,12 +93,21 @@ async function discoverTree(id, tree, parentId = null, depth = 0) {
     if (block.type === 'child_database') throw new Error(`Child database ${block.id} needs an explicit publishing rule.`);
   }
 }
-for (const tree of trees) {
+for (const tree of offline ? [] : trees) {
   if (!validId(tree.id) || !validSlug(tree.slug)) throw new Error('Every approved tree needs a valid id and slug.');
   await discoverTree(tree.id, tree);
 }
+if (offline) {
+  const saved = await readArchive(archiveDir, config);
+  for (const entry of saved.entries) {
+    entries.set(entry.id, entry);
+    if (entry.treeSlug) treeRecords.push(entry);
+  }
+  for (const [id, blocks] of Object.entries(saved.children)) blockCache.set(id, blocks);
+}
 
 function publicHref(href) {
+  if (offline && typeof href === 'string' && [...entries.values()].some(entry => href === `${entry.slug}.html`)) return href;
   if (!href || !/^https?:\/\//.test(href)) return null;
   try {
     const url = new URL(href);
@@ -121,6 +138,14 @@ function richText(items = []) {
 
 async function saveMedia(block, kind, slug) {
   const value = block[kind] ?? {};
+  if (offline) {
+    const name = value.local;
+    if (!name || path.basename(name) !== name) throw new Error(`Invalid saved media path in ${block.id}`);
+    const directory = path.join(dist, 'notion', 'assets');
+    await fs.mkdir(directory, { recursive: true });
+    await fs.copyFile(path.join(archiveDir, 'assets', name), path.join(directory, name));
+    return `assets/${name}`;
+  }
   const source = value.file?.url ?? value.external?.url;
   if (!source) throw new Error(`${kind} ${block.id} has no downloadable URL.`);
   const { data, contentType } = await downloadMedia(source);
@@ -135,6 +160,11 @@ async function saveMedia(block, kind, slug) {
   const directory = path.join(dist, 'notion', 'assets');
   await fs.mkdir(directory, { recursive: true });
   await fs.writeFile(path.join(directory, name), data);
+  if (data.length >= 95 * 1024 * 1024) throw new Error(`Attachment too large for Git: ${name}`);
+  const archiveAssets = path.join(archiveDir, 'assets');
+  await fs.mkdir(archiveAssets, { recursive: true });
+  await fs.writeFile(path.join(archiveAssets, name), data);
+  mediaFiles.set(block.id, name);
   return `assets/${name}`;
 }
 
@@ -259,6 +289,8 @@ async function renderBlocks(blocks, entry) {
 }
 
 const articleDir = path.join(dist, 'notion');
+// Rebuild generated directories so removed pages and attachments do not remain online.
+await fs.rm(articleDir, { recursive: true, force: true });
 await fs.mkdir(articleDir, { recursive: true });
 const dateLabel = iso => iso ? new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -345,5 +377,5 @@ replaceSlot('ACTIVITY', activity);
 replaceSlot('RECENT', recent);
 home = home.replaceAll('__ASSET_VERSION__', assetVersion);
 await fs.writeFile(homePath, home);
+if (!offline) await writeArchive({ archiveDir, entries: [...entries.values()], blockCache, mediaFiles, config, publicHref });
 console.log(`Published ${entries.size} approved Notion pages across ${trees.length} sections.`);
-

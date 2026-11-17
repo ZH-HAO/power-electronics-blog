@@ -4,9 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      sync_notion:
+        description: 'Read Notion and commit updated notes before publishing'
+        type: boolean
+        default: true
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -25,10 +30,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Build explicitly approved Notion articles
+      - name: Test archive and offline build
+        run: node --test scripts/notion-archive.test.mjs
+      - name: Sync approved Notion notes into repository files
+        if: github.event_name == 'push' || inputs.sync_notion
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
         run: node scripts/sync-notion.mjs
+      - name: Build website from saved repository content without Notion credentials
+        run: node scripts/sync-notion.mjs --from-repository
+      - name: Commit updated notes and attachments
+        env:
+          SYNC_BRANCH: ${{ github.ref_name }}
+        run: |
+          git add -- content/notion
+          if git diff --cached --quiet; then
+            echo "Notion content unchanged; no commit needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: sync approved Notion notes and attachments"
+          git push origin "HEAD:$SYNC_BRANCH"
       - uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -37,4 +60,3 @@ jobs:
           path: ./dist
       - id: deployment
         uses: actions/deploy-pages@v4
-
