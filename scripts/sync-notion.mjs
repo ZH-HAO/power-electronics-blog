@@ -142,8 +142,9 @@ async function renderBlock(block, entry) {
   let html = '';
   switch (block.type) {
     case 'paragraph': html = `<p>${richText(value.rich_text)}</p>`; break;
-    case 'heading_1': case 'heading_2': case 'heading_3': {
-      const tag = block.type === 'heading_3' ? 'h3' : 'h2';
+    case 'heading_1': case 'heading_2': case 'heading_3': case 'heading_4': case 'heading_5': case 'heading_6': {
+      const level = Number(block.type.slice(-1));
+      const tag = `h${Math.max(2, level)}`;
       html = `<${tag} id="h-${cleanId(block.id)}">${richText(value.rich_text)}</${tag}>`;
       break;
     }
