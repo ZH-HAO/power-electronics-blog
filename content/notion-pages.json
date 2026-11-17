@@ -5,6 +5,33 @@
       "slug": "single-inductor-model",
       "summary": "用伏秒平衡理解 Buck、Boost 与反相 Buck-Boost"
     }
+  ],
+  "trees": [
+    {
+      "id": "4059d738-5883-8029-96b3-d0ffef89c0ad",
+      "slug": "graph-theory",
+      "category": "图论",
+      "summary": "图论课件整理、符号速查、定理归纳与作业",
+      "slugOverrides": {
+        "7c99d7385883825bbd3c0189ae202c28": "graph-course-notes",
+        "4069d7385883816093fed8c1a4fbb83a": "graph-symbols",
+        "4059d73858838131b63bc5175947aef2": "graph-chapter-1",
+        "4059d738588381319731e1519b7e70d8": "graph-chapter-2",
+        "4059d7385883813a9d76ccc6f100f82a": "graph-chapter-3",
+        "4059d738588381898f32c355b4f9017f": "graph-chapter-5",
+        "4059d7385883815eb909ed56b4ad607a": "graph-chapter-6",
+        "4059d738588381e388d6f6b4b34ebbfc": "graph-chapter-7",
+        "4059d738588381f2ba7ad3580c68b77e": "graph-chapter-4",
+        "40a9d7385883801ab5bad12f2fc847d3": "graph-homework",
+        "1609d73858838206b18281a716138ee5": "graph-homework-1",
+        "2e69d7385883831eafd581f49104bffd": "graph-homework-2",
+        "bc89d738588383f685ef0178e603e2cb": "graph-homework-3-solutions",
+        "d5f9d73858838227ae958101163d5c29": "graph-homework-3",
+        "8e49d7385883834c8a7481caafb698fe": "graph-homework-4",
+        "4159d738588381928701c84785eabae4": "graph-summary",
+        "4159d738588381f2b99bf7d0de5b524a": "graph-special-graphs"
+      }
+    }
   ]
 }
 

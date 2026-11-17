@@ -1,16 +1,16 @@
-# 开关之间｜电力电子学习手记
+# 开关之间｜学习笔记
 
-这是博客的公开源码。`dist/` 是 GitHub Pages 发布目录，包含首页、学习路线和三篇入门文章。
+公开博客：https://zh-hao.github.io/power-electronics-blog/
 
 ## 发布
 
-推送到 `main` 后，`.github/workflows/deploy.yml` 会将 `dist/` 发布到 GitHub Pages。也可以从 Actions 页面手动运行。GitHub Pages 上的网页面向所有人公开。
+推送到 `main` 后，GitHub Actions 从 Notion 读取已批准的内容，生成静态网页并发布到 GitHub Pages。也可在仓库的 **Actions → Publish blog to GitHub Pages → Run workflow** 手动同步。Notion 中的修改不会自动触发 GitHub Actions。
 
-## 与 Notion 的关系
+## Notion 内容范围
 
-Notion 是学习与写作工作区，博客是公开内容。只有明确列入发布清单的页面才会进入博客；不要把整个「电力电子学习」页面树自动导出。现有三篇博客文章是站点源码中的独立内容，不代表 Notion 原文已公开。
+`content/notion-pages.json` 的 `pages` 列出单独公开的笔记。`trees` 列出获准整体公开的页面树。目前仅「图论」顶层页面及其全部子页面自动进入公开博客，包括以后在该页面树中新建的子页面。其他 Notion 页面不会因为名称包含“图论”而被纳入。移出「图论」页面树的页面在下次构建时会退出目录；若曾公开，其旧网址和被下载的附件可能仍保留在搜索引擎或第三方缓存。
 
-`scripts/sync-notion.mjs` 已接入发布流程，但 `content/notion-pages.json` 的清单目前为空，所以不会读取或公开任何 Notion 页面。启用时，逐条填写已决定公开的页面 ID、英文 slug 和摘要，例如 `{ "id": "页面 ID", "slug": "buck-notes", "summary": "文章摘要" }`。脚本只读取清单上的页面，不自动导出子页面；遇到无法可靠转换的块类型会停止发布。
+图片、PDF 等附件在构建时复制到静态站点。站内 Notion 页面链接会改写为公开文章链接；指向未批准页面的 Notion 链接不显示为可点击链接。遇到尚未支持的块类型，构建会失败，避免悄悄遗漏正文。
 
-同步使用 Notion 只读连接，在构建时抓取选定页面并生成静态文章。连接令牌必须存入 GitHub Actions Secret `NOTION_TOKEN`，不能写入仓库或浏览器脚本。还需在 Notion 中将对应页面单独授权给该连接。当前未创建连接、未设置令牌、未授权页面，也未添加定时同步。
+连接令牌只放在 GitHub Actions Repository Secret `NOTION_TOKEN` 中，不要提交到仓库。Notion 内部连接需要“读取内容”权限，并获得对应页面的访问权。GitHub Pages 是公开网站。
 
