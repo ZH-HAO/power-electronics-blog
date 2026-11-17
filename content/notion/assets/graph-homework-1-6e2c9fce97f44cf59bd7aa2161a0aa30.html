@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><title>第10题 最小生成树</title>
+<style>
+body{margin:0;padding:16px;background:#fafafa;font-family:-apple-system,"Segoe UI",sans-serif}
+h3{margin:0 0 10px;font-size:15px;color:#333;text-align:center}
+svg{display:block;margin:0 auto}
+.edge{stroke:#aaa;stroke-width:2}
+.mst{stroke:#e53935;stroke-width:4}
+.node{fill:#fff;stroke:#333;stroke-width:2}
+.weight{font-size:13px;fill:#333;text-anchor:middle;font-weight:600}
+.weight.mst{fill:#e53935}
+.label{font-size:14px;fill:#333;text-anchor:middle;font-weight:700}
+.legend{font-size:13px;color:#555;text-align:center;margin-top:8px}
+.legend b{color:#e53935}
+</style></head><body>
+<h3>第 10 题 · 最小生成树（MST）</h3>
+<svg width="620" height="560" viewBox="0 0 620 560">
+<line class="edge" x1="200" y1="60" x2="400" y2="60"/>
+<text class="weight " x="300" y="54">7</text>
+<line class="edge" x1="200" y1="60" x2="60" y2="200"/>
+<text class="weight " x="130" y="124">4</text>
+<line class="edge" x1="400" y1="60" x2="540" y2="200"/>
+<text class="weight " x="470" y="124">4</text>
+<line class="mst" x1="200" y1="60" x2="200" y2="200"/>
+<text class="weight mst" x="200" y="124">1</text>
+<line class="mst" x1="400" y1="60" x2="400" y2="200"/>
+<text class="weight mst" x="400" y="124">1</text>
+<line class="mst" x1="60" y1="200" x2="200" y2="200"/>
+<text class="weight mst" x="130" y="194">3</text>
+<line class="mst" x1="200" y1="200" x2="400" y2="200"/>
+<text class="weight mst" x="300" y="194">2</text>
+<line class="mst" x1="400" y1="200" x2="540" y2="200"/>
+<text class="weight mst" x="470" y="194">3</text>
+<line class="mst" x1="60" y1="200" x2="60" y2="360"/>
+<text class="weight mst" x="60" y="274">1</text>
+<line class="mst" x1="200" y1="200" x2="200" y2="360"/>
+<text class="weight mst" x="200" y="274">2</text>
+<line class="mst" x1="400" y1="200" x2="400" y2="360"/>
+<text class="weight mst" x="400" y="274">2</text>
+<line class="mst" x1="540" y1="200" x2="540" y2="360"/>
+<text class="weight mst" x="540" y="274">1</text>
+<line class="edge" x1="60" y1="360" x2="200" y2="360"/>
+<text class="weight " x="130" y="354">3</text>
+<line class="edge" x1="200" y1="360" x2="400" y2="360"/>
+<text class="weight " x="300" y="354">2</text>
+<line class="edge" x1="400" y1="360" x2="540" y2="360"/>
+<text class="weight " x="470" y="354">3</text>
+<line class="edge" x1="60" y1="360" x2="200" y2="500"/>
+<text class="weight " x="130" y="424">4</text>
+<line class="mst" x1="200" y1="360" x2="200" y2="500"/>
+<text class="weight mst" x="200" y="424">1</text>
+<line class="mst" x1="400" y1="360" x2="400" y2="500"/>
+<text class="weight mst" x="400" y="424">1</text>
+<line class="edge" x1="540" y1="360" x2="400" y2="500"/>
+<text class="weight " x="470" y="424">4</text>
+<line class="edge" x1="200" y1="500" x2="400" y2="500"/>
+<text class="weight " x="300" y="494">7</text>
+<circle class="node" cx="200" cy="60" r="7"/>
+<text class="label" x="200" y="46">u1</text>
+<circle class="node" cx="400" cy="60" r="7"/>
+<text class="label" x="400" y="46">u2</text>
+<circle class="node" cx="60" cy="200" r="7"/>
+<text class="label" x="60" y="186">l1</text>
+<circle class="node" cx="200" cy="200" r="7"/>
+<text class="label" x="200" y="186">a</text>
+<circle class="node" cx="400" cy="200" r="7"/>
+<text class="label" x="400" y="186">b</text>
+<circle class="node" cx="540" cy="200" r="7"/>
+<text class="label" x="540" y="186">r1</text>
+<circle class="node" cx="60" cy="360" r="7"/>
+<text class="label" x="60" y="346">l2</text>
+<circle class="node" cx="200" cy="360" r="7"/>
+<text class="label" x="200" y="346">c</text>
+<circle class="node" cx="400" cy="360" r="7"/>
+<text class="label" x="400" y="346">d</text>
+<circle class="node" cx="540" cy="360" r="7"/>
+<text class="label" x="540" y="346">r2</text>
+<circle class="node" cx="200" cy="500" r="7"/>
+<text class="label" x="200" y="486">d1</text>
+<circle class="node" cx="400" cy="500" r="7"/>
+<text class="label" x="400" y="486">d2</text>
+</svg>
+<div class="legend">红色 = MST 选中的边，总权值 <b>18</b></div>
+</body></html>
