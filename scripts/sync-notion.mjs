@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import http from 'node:http';
+import https from 'node:https';
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
@@ -120,9 +122,8 @@ async function saveMedia(block, kind, slug) {
   const value = block[kind] ?? {};
   const source = value.file?.url ?? value.external?.url;
   if (!source) throw new Error(`${kind} ${block.id} has no downloadable URL.`);
-  const response = await fetch(source);
-  if (!response.ok) throw new Error(`Unable to download ${kind} ${block.id}: HTTP ${response.status}`);
-  const type = (response.headers.get('content-type') ?? '').split(';')[0].toLowerCase();
+  const { data, contentType } = await downloadMedia(source);
+  const type = contentType.split(';')[0].toLowerCase();
   const ext = ({
     'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp',
     'image/gif': 'gif', 'image/svg+xml': 'svg', 'application/pdf': 'pdf',
@@ -132,8 +133,38 @@ async function saveMedia(block, kind, slug) {
   const name = `${slug}-${cleanId(block.id)}.${ext}`;
   const directory = path.join(dist, 'notion', 'assets');
   await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(path.join(directory, name), Buffer.from(await response.arrayBuffer()));
+  await fs.writeFile(path.join(directory, name), data);
   return `assets/${name}`;
+}
+
+function downloadMedia(source, redirects = 0) {
+  if (redirects > 5) return Promise.reject(new Error('Too many media redirects.'));
+  return new Promise((resolve, reject) => {
+    const url = new URL(source);
+    const client = url.protocol === 'https:' ? https : url.protocol === 'http:' ? http : null;
+    if (!client) return reject(new Error(`Unsupported media URL protocol: ${url.protocol}`));
+    const request = client.get(url, response => {
+      if ([301, 302, 303, 307, 308].includes(response.statusCode) && response.headers.location) {
+        response.resume();
+        resolve(downloadMedia(new URL(response.headers.location, url).href, redirects + 1));
+        return;
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        reject(new Error(`Media download HTTP ${response.statusCode}: ${url.hostname}`));
+        return;
+      }
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', () => resolve({
+        data: Buffer.concat(chunks),
+        contentType: response.headers['content-type'] ?? ''
+      }));
+      response.on('error', reject);
+    });
+    request.setTimeout(60000, () => request.destroy(new Error('Media download timed out.')));
+    request.on('error', reject);
+  });
 }
 
 async function renderBlock(block, entry) {
