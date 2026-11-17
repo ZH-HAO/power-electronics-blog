@@ -321,8 +321,8 @@ for (const entry of entries.values()) {
 }
 const dayMs = 24 * 60 * 60 * 1000;
 const today = new Date(`${chinaDay(new Date())}T00:00:00Z`);
-const firstDay = today.getTime() - 125 * dayMs;
-const activity = `<div class="activity-chart"><div class="activity-weekdays"><span>一</span><span>三</span><span>五</span></div><div class="activity-grid">${Array.from({ length: 18 }, (_, week) =>
+const firstDay = today.getTime() - 363 * dayMs;
+const activity = `<div class="activity-chart"><div class="activity-weekdays"><span>一</span><span>三</span><span>五</span></div><div class="activity-grid">${Array.from({ length: 52 }, (_, week) =>
   `<div class="activity-week">${Array.from({ length: 7 }, (_, day) => {
     const date = new Date(firstDay + (week * 7 + day) * dayMs).toISOString().slice(0, 10);
     const count = editCounts.get(date) ?? 0;

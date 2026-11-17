@@ -7,4 +7,8 @@ if (progress) {
   window.addEventListener('scroll', update, { passive: true });
   update();
 }
+const activityScroll = document.querySelector('.activity-scroll');
+if (activityScroll && window.matchMedia('(max-width: 700px)').matches) {
+  activityScroll.scrollLeft = activityScroll.scrollWidth;
+}
 
