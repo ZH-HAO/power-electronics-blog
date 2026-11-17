@@ -259,33 +259,35 @@ async function renderBlocks(blocks, entry) {
 
 const articleDir = path.join(dist, 'notion');
 await fs.mkdir(articleDir, { recursive: true });
+const sectionLinks = prefix => trees.map(tree =>
+  `<a href="${prefix}${escapeHtml(tree.slug)}/index.html">${escapeHtml(tree.category)}</a>`).join('');
 for (const entry of entries.values()) {
   const body = await renderBlocks(entry.blocks, entry);
   const description = escapeHtml(entry.summary || `${entry.title}｜学习笔记`);
-  const back = entry.treeSlug ? `../graph-theory/index.html` : '../index.html#articles';
-  const label = entry.treeSlug ? '图论专栏' : '文章';
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><title>${escapeHtml(entry.title)}｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script><script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script></head><body><div class="reading-progress"></div><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a><button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button><nav class="nav-links"><a href="../index.html#articles">文章</a><a href="../graph-theory/index.html">图论</a><a href="../index.html#roadmap">学习路线</a></nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="${back}">← 返回${label}</a><div class="eyebrow" style="margin-top:35px">NOTION / ${escapeHtml(entry.category)}</div><h1>${escapeHtml(entry.title)}</h1><p>${description}</p><div class="meta"><span>来源：Notion 学习笔记</span></div></div><div class="article-layout"><article class="article-body">${body}</article></div></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
+  const back = entry.treeSlug ? `../${entry.treeSlug}/index.html` : '../index.html#articles';
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><title>${escapeHtml(entry.title)}｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script><script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script></head><body><div class="reading-progress"></div><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a><button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button><nav class="nav-links" aria-label="主导航">${sectionLinks('../')}</nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="${back}">← 返回${escapeHtml(entry.category)}专栏</a><div class="eyebrow" style="margin-top:35px">NOTION / ${escapeHtml(entry.category)}</div><h1>${escapeHtml(entry.title)}</h1><p>${description}</p><div class="meta"><span>来源：Notion 学习笔记</span></div></div><div class="article-layout"><article class="article-body">${body}</article></div></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
   await fs.writeFile(path.join(articleDir, `${entry.slug}.html`), html);
   console.log(`Built ${entry.slug}: ${entry.title}`);
 }
 
-if (treeRecords.length) {
-  const graphDir = path.join(dist, 'graph-theory');
-  await fs.mkdir(graphDir, { recursive: true });
-  const rootEntry = treeRecords.find(entry => !entry.parentId);
+for (const tree of trees) {
+  const section = treeRecords.filter(entry => entry.treeSlug === tree.slug);
+  const sectionDir = path.join(dist, tree.slug);
+  await fs.mkdir(sectionDir, { recursive: true });
+  const rootEntry = section.find(entry => !entry.parentId);
+  if (!rootEntry) throw new Error(`No root page was found for ${tree.slug}`);
   const itemHtml = entry => {
-    const kids = treeRecords.filter(child => child.parentId === entry.id);
+    const kids = section.filter(child => child.parentId === entry.id);
     return `<li><a href="../notion/${escapeHtml(entry.slug)}.html">${escapeHtml(entry.title)} <span>↗</span></a>${kids.length ? `<ul>${kids.map(itemHtml).join('')}</ul>` : ''}</li>`;
   };
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="图论学习笔记：七章课件整理、符号速查、结论汇总与作业。"><title>图论专栏｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script></head><body><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a><button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button><nav class="nav-links"><a href="../index.html#articles">文章</a><a href="index.html" aria-current="page">图论</a><a href="../index.html#roadmap">学习路线</a></nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="../index.html">← 返回首页</a><div class="eyebrow" style="margin-top:35px">GRAPH THEORY / 图论专栏</div><h1>从图、树与路径，<br>走向结构的理解。</h1><p>这里汇集我的图论课件整理、符号速查、定理归纳与作业笔记。内容会随 Notion 笔记更新。</p><div class="meta"><span>${treeRecords.length} 篇笔记 · 来自 Notion「${escapeHtml(rootEntry.title)}」页面树</span></div></div><section class="graph-directory"><h2>阅读目录</h2><ul class="graph-tree">${itemHtml(rootEntry)}</ul></section></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
-  await fs.writeFile(path.join(graphDir, 'index.html'), html);
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${escapeHtml(tree.summary)}"><title>${escapeHtml(tree.category)}专栏｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script></head><body><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a><button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button><nav class="nav-links" aria-label="主导航">${sectionLinks('../')}</nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="../index.html">← 返回首页</a><div class="eyebrow" style="margin-top:35px">NOTION / ${escapeHtml(tree.category)}专栏</div><h1>${escapeHtml(tree.category)}学习笔记</h1><p>${escapeHtml(tree.summary)}</p><div class="meta"><span>${section.length} 篇笔记 · 来自 Notion「${escapeHtml(rootEntry.title)}」页面树</span></div></div><section class="graph-directory"><h2>阅读目录</h2><ul class="graph-tree">${itemHtml(rootEntry)}</ul></section></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
+  await fs.writeFile(path.join(sectionDir, 'index.html'), html);
 }
 
-const cards = pages.map(item => {
-  const entry = entries.get(cleanId(item.id));
-  return `<a class="card" href="notion/${escapeHtml(entry.slug)}.html" data-category="${escapeHtml(entry.category)}" data-title="${escapeHtml(entry.title)}"><div class="card-num"><span>NOTION / 已公开</span><span>${escapeHtml(entry.category)}</span></div><h3>${escapeHtml(entry.title)}</h3><p>${escapeHtml(entry.summary || '来自 Notion 的学习笔记')}</p><div class="card-foot"><span>来自 Notion</span><span>阅读全文 ↗</span></div></a>`;
+const cards = trees.map((tree, index) => {
+  const count = treeRecords.filter(entry => entry.treeSlug === tree.slug).length;
+  return `<a class="channel-card" href="${escapeHtml(tree.slug)}/index.html"><div class="channel-card-top"><span>0${index + 1} / NOTION</span><span>↗</span></div><h3>${escapeHtml(tree.category)}</h3><p>${escapeHtml(tree.summary)}</p><div class="channel-card-foot">${count} 篇笔记 · 阅读专栏</div></a>`;
 });
-if (treeRecords.length) cards.push(`<a class="card" href="graph-theory/index.html" data-category="图论" data-title="图论专栏"><div class="card-num"><span>GRAPH THEORY</span><span>图论</span></div><h3>图论专栏</h3><p>七章课件整理、符号速查、结论汇总与作业。共 ${treeRecords.length} 篇笔记。</p><div class="card-foot"><span>来自 Notion</span><span>打开目录 ↗</span></div></a>`);
 const homePath = path.join(dist, 'index.html');
 const home = await fs.readFile(homePath, 'utf8');
 const start = '<!-- NOTION_POSTS_START -->';
@@ -293,8 +295,8 @@ const end = '<!-- NOTION_POSTS_END -->';
 const marker = `${start}${cards.join('')}${end}`;
 const updated = home.includes(start)
   ? home.replace(new RegExp(`${start}[\\s\\S]*?${end}`), marker)
-  : home.replace('<p class="empty" hidden>', `${marker}<p class="empty" hidden>`);
+  : home.replace('<div id="notion-collections"></div>', `<div id="notion-collections">${marker}</div>`);
 if (updated === home && !home.includes(start)) throw new Error('Homepage insertion point not found.');
 await fs.writeFile(homePath, updated);
-console.log(`Published ${entries.size} approved Notion pages (${treeRecords.length} in the graph theory tree).`);
+console.log(`Published ${entries.size} approved Notion pages across ${trees.length} sections.`);
 

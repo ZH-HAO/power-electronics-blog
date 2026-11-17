@@ -1,12 +1,19 @@
 {
-  "pages": [
-    {
-      "id": "41a9d738-5883-80b9-9045-c4a4ace82f93",
-      "slug": "single-inductor-model",
-      "summary": "用伏秒平衡理解 Buck、Boost 与反相 Buck-Boost"
-    }
-  ],
+  "pages": [],
   "trees": [
+    {
+      "id": "4049d738-5883-808f-9ac8-e3c754bc8f5f",
+      "slug": "power-electronics",
+      "category": "电力电子",
+      "summary": "DC-DC 基础、Buck 仿真与非隔离型变换器笔记",
+      "slugOverrides": {
+        "4049d738588380f1adccf65a7dcab1ab": "dc-dc-basics",
+        "4029d738588380bdb6a2dfc694e04715": "buck-simulation-notes",
+        "41a9d738588380819679f8ccc7f17270": "non-isolated-dc-dc",
+        "41a9d738588380b99045c4a4ace82f93": "single-inductor-model",
+        "41b9d738588381e6a08ff50b4177f42d": "dual-inductor-model"
+      }
+    },
     {
       "id": "4059d738-5883-8029-96b3-d0ffef89c0ad",
       "slug": "graph-theory",

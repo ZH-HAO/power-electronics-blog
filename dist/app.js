@@ -1,4 +1,22 @@
-const menuButton=document.querySelector('.menu-button');const nav=document.querySelector('.nav-links');if(menuButton&&nav){menuButton.addEventListener('click',()=>{const open=nav.classList.toggle('open');menuButton.setAttribute('aria-expanded',String(open));});nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');menuButton.setAttribute('aria-expanded','false');}));}
-const cards=[...document.querySelectorAll('[data-category][data-title]')];const buttons=[...document.querySelectorAll('.filter')];const search=document.querySelector('.search');let active='全部';function filterCards(){if(!cards.length)return;const q=(search?.value||'').trim().toLowerCase();let count=0;cards.forEach(c=>{const ok=(active==='全部'||c.dataset.category===active)&&(!q||(c.dataset.title+' '+c.textContent).toLowerCase().includes(q));c.hidden=!ok;if(ok)count++;});const empty=document.querySelector('.empty');if(empty)empty.hidden=count>0;}buttons.forEach(b=>b.addEventListener('click',()=>{active=b.dataset.filter;buttons.forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});filterCards();}));search?.addEventListener('input',filterCards);
-const bar=document.querySelector('.reading-progress');if(bar){const update=()=>{const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;bar.style.width=(max?window.scrollY/max*100:0)+'%';};window.addEventListener('scroll',update,{passive:true});update();}
+const menuButton = document.querySelector('.menu-button');
+const nav = document.querySelector('.nav-links');
+if (menuButton && nav) {
+  menuButton.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    menuButton.setAttribute('aria-expanded', String(open));
+  });
+  nav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+    nav.classList.remove('open');
+    menuButton.setAttribute('aria-expanded', 'false');
+  }));
+}
+const progress = document.querySelector('.reading-progress');
+if (progress) {
+  const update = () => {
+    const max = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    progress.style.width = (max ? window.scrollY / max * 100 : 0) + '%';
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}
 
