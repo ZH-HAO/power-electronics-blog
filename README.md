@@ -2,6 +2,8 @@
 
 公开博客：https://zh-hao.github.io/power-electronics-blog/
 
+图论目录：https://zh-hao.github.io/power-electronics-blog/graph-theory/
+
 ## 发布
 
 推送到 `main` 后，GitHub Actions 从 Notion 读取已批准的内容，生成静态网页并发布到 GitHub Pages。也可在仓库的 **Actions → Publish blog to GitHub Pages → Run workflow** 手动同步。Notion 中的修改不会自动触发 GitHub Actions。
