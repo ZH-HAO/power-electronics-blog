@@ -59,7 +59,7 @@ function addEntry(id, slug, category, summary, parentId, treeSlug, page, blocks)
   const key = cleanId(id);
   if (!validId(key) || !validSlug(slug) || slugs.has(slug)) throw new Error(`Invalid or duplicate publication ID/slug: ${id} / ${slug}`);
   slugs.add(slug);
-  const entry = { id: key, slug, category, summary, parentId, treeSlug, title: pageTitle(page), blocks };
+  const entry = { id: key, slug, category, summary, parentId, treeSlug, title: pageTitle(page), updatedAt: page.last_edited_time ?? null, blocks };
   entries.set(key, entry);
   return entry;
 }
@@ -259,13 +259,16 @@ async function renderBlocks(blocks, entry) {
 
 const articleDir = path.join(dist, 'notion');
 await fs.mkdir(articleDir, { recursive: true });
-const sectionLinks = prefix => trees.map(tree =>
-  `<a href="${prefix}${escapeHtml(tree.slug)}/index.html">${escapeHtml(tree.category)}</a>`).join('');
+const dateLabel = iso => iso ? new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit'
+}).format(new Date(iso)) : '未记录日期';
+const header = (prefix, active) => `<header class="topbar"><div class="shell topbar-inner"><a class="brand" href="${prefix}index.html" aria-label="ZH-HAO 学习手记首页"><span class="brand-mark">ZH</span><span>ZH-HAO <span class="brand-slash">/</span> learning-notes</span></a><a class="header-github" href="https://github.com/ZH-HAO" target="_blank" rel="noopener">GitHub 主页 ↗</a></div></header><nav class="tabbar" aria-label="主要栏目"><div class="shell tab-inner"><a class="tab${active ? '' : ' active'}" href="${prefix}index.html"${active ? '' : ' aria-current="page"'}>◫ <span>概览</span></a>${trees.map(tree => `<a class="tab${active === tree.slug ? ' active' : ''}" href="${prefix}${escapeHtml(tree.slug)}/index.html"${active === tree.slug ? ' aria-current="page"' : ''}>${tree.slug === 'power-electronics' ? '⌁' : '◇'} <span>${escapeHtml(tree.category)}</span></a>`).join('')}</div></nav>`;
+const footer = `<footer class="footer"><div class="shell footer-inner"><span>© 2026 ZH-HAO · 学习手记</span><span>电力电子 · 图论</span></div></footer>`;
 for (const entry of entries.values()) {
   const body = await renderBlocks(entry.blocks, entry);
   const description = escapeHtml(entry.summary || `${entry.title}｜学习笔记`);
-  const back = entry.treeSlug ? `../${entry.treeSlug}/index.html` : '../index.html#articles';
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><title>${escapeHtml(entry.title)}｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script><script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script></head><body><div class="reading-progress"></div><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a><button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button><nav class="nav-links" aria-label="主导航">${sectionLinks('../')}</nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="${back}">← 返回${escapeHtml(entry.category)}专栏</a><div class="eyebrow" style="margin-top:35px">NOTION / ${escapeHtml(entry.category)}</div><h1>${escapeHtml(entry.title)}</h1><p>${description}</p><div class="meta"><span>来源：Notion 学习笔记</span></div></div><div class="article-layout"><article class="article-body">${body}</article></div></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
+  const categoryLink = entry.treeSlug ? `../${entry.treeSlug}/index.html` : '../index.html';
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f8fa"><meta name="description" content="${description}"><title>${escapeHtml(entry.title)} · ZH-HAO 学习手记</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script><script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script></head><body><div class="reading-progress"></div>${header('../', entry.treeSlug)}<main class="shell article-main"><div class="breadcrumbs"><a href="../index.html">概览</a><span>/</span><a href="${categoryLink}">${escapeHtml(entry.category)}</a><span>/</span><span>${escapeHtml(entry.title)}</span></div><div class="article-heading"><span class="file-pill">▤ Notion 笔记</span><h1>${escapeHtml(entry.title)}</h1><div class="article-info"><span>${escapeHtml(entry.category)}</span><span>最后更新：${escapeHtml(dateLabel(entry.updatedAt))}</span></div></div><article class="article-body">${body}</article><div class="article-bottom"><a href="${categoryLink}">← 返回${escapeHtml(entry.category)}专栏</a></div></main>${footer}</body></html>`;
   await fs.writeFile(path.join(articleDir, `${entry.slug}.html`), html);
   console.log(`Built ${entry.slug}: ${entry.title}`);
 }
@@ -278,25 +281,67 @@ for (const tree of trees) {
   if (!rootEntry) throw new Error(`No root page was found for ${tree.slug}`);
   const itemHtml = entry => {
     const kids = section.filter(child => child.parentId === entry.id);
-    return `<li><a href="../notion/${escapeHtml(entry.slug)}.html">${escapeHtml(entry.title)} <span>↗</span></a>${kids.length ? `<ul>${kids.map(itemHtml).join('')}</ul>` : ''}</li>`;
+    return `<li><a class="tree-row" href="../notion/${escapeHtml(entry.slug)}.html"><span class="tree-main"><span class="tree-icon">${kids.length ? '▣' : '▤'}</span><span>${escapeHtml(entry.title)}</span></span><time datetime="${escapeHtml(entry.updatedAt?.slice(0, 10) ?? '')}">${escapeHtml(dateLabel(entry.updatedAt))}</time></a>${kids.length ? `<ul>${kids.map(itemHtml).join('')}</ul>` : ''}</li>`;
   };
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${escapeHtml(tree.summary)}"><title>${escapeHtml(tree.category)}专栏｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script></head><body><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a><button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button><nav class="nav-links" aria-label="主导航">${sectionLinks('../')}</nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="../index.html">← 返回首页</a><div class="eyebrow" style="margin-top:35px">NOTION / ${escapeHtml(tree.category)}专栏</div><h1>${escapeHtml(tree.category)}学习笔记</h1><p>${escapeHtml(tree.summary)}</p><div class="meta"><span>${section.length} 篇笔记 · 来自 Notion「${escapeHtml(rootEntry.title)}」页面树</span></div></div><section class="graph-directory"><h2>阅读目录</h2><ul class="graph-tree">${itemHtml(rootEntry)}</ul></section></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f8fa"><meta name="description" content="${escapeHtml(tree.summary)}"><title>${escapeHtml(tree.category)} · ZH-HAO 学习手记</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script></head><body>${header('../', tree.slug)}<main class="shell hub-main"><div class="breadcrumbs"><a href="../index.html">概览</a><span>/</span><span>${escapeHtml(tree.category)}</span></div><div class="repo-heading"><div class="repo-title"><span class="repo-icon">${tree.slug === 'power-electronics' ? '⌁' : '◇'}</span><span>ZH-HAO <span class="repo-divider">/</span> <strong>${escapeHtml(tree.category)}</strong></span><span class="public-badge">公开</span></div><p>${escapeHtml(tree.summary)}</p><div class="repo-facts"><span>${section.length} 篇笔记</span><span>·</span><span>来源：Notion「${escapeHtml(rootEntry.title)}」</span></div></div><div class="directory-panel"><div class="directory-toolbar"><span>▣ 专栏目录</span><span>${section.length} 个页面</span></div><ul class="file-tree">${itemHtml(rootEntry)}</ul></div></main>${footer}</body></html>`;
   await fs.writeFile(path.join(sectionDir, 'index.html'), html);
 }
 
-const cards = trees.map((tree, index) => {
+const collections = trees.map(tree => {
   const count = treeRecords.filter(entry => entry.treeSlug === tree.slug).length;
-  return `<a class="channel-card" href="${escapeHtml(tree.slug)}/index.html"><div class="channel-card-top"><span>0${index + 1} / NOTION</span><span>↗</span></div><h3>${escapeHtml(tree.category)}</h3><p>${escapeHtml(tree.summary)}</p><div class="channel-card-foot">${count} 篇笔记 · 阅读专栏</div></a>`;
-});
+  const topicClass = tree.slug === 'power-electronics' ? 'power' : 'graph';
+  return `<a class="repo-card" href="${escapeHtml(tree.slug)}/index.html"><div class="repo-card-head"><span class="repo-icon">${topicClass === 'power' ? '⌁' : '◇'}</span><span class="repo-name">${escapeHtml(tree.category)}</span><span class="public-badge">公开</span></div><p>${escapeHtml(tree.summary)}</p><div class="repo-card-foot"><span class="topic-dot ${topicClass}"></span>${escapeHtml(tree.category)} <span>·</span> ${count} 篇笔记</div></a>`;
+}).join('');
+const featureText = {
+  'single-inductor-model': 'Buck、Boost 与反相 Buck-Boost 的统一分析',
+  'dual-inductor-model': '双电感结构的基本理论与工作过程',
+  'graph-symbols': '常用记号、术语与公式速查',
+  'graph-summary': '第一至七章的概念、定理与推论'
+};
+const featured = Object.entries(featureText).map(([slug, summary]) => {
+  const entry = [...entries.values()].find(item => item.slug === slug);
+  if (!entry) return '';
+  return `<a class="repo-card note-card" href="notion/${escapeHtml(entry.slug)}.html"><div class="repo-card-head"><span class="repo-icon">▤</span><span class="repo-name">${escapeHtml(entry.title)}</span></div><p>${escapeHtml(summary)}</p><div class="repo-card-foot"><span class="topic-dot ${entry.treeSlug === 'power-electronics' ? 'power' : 'graph'}"></span>${escapeHtml(entry.category)} <span>·</span> ${escapeHtml(dateLabel(entry.updatedAt))}</div></a>`;
+}).join('');
+const recent = [...entries.values()].filter(entry => entry.parentId).sort((a, b) =>
+  String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? ''))).slice(0, 6).map(entry =>
+    `<a class="recent-row" href="notion/${escapeHtml(entry.slug)}.html"><span class="recent-title"><span class="tree-icon">▤</span>${escapeHtml(entry.title)}<small>${escapeHtml(entry.category)}</small></span><time datetime="${escapeHtml(entry.updatedAt?.slice(0, 10) ?? '')}">${escapeHtml(dateLabel(entry.updatedAt))}</time></a>`
+  ).join('');
+function chinaDay(value) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date(value)).map(part => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+const editCounts = new Map();
+for (const entry of entries.values()) {
+  if (!entry.updatedAt) continue;
+  const day = chinaDay(entry.updatedAt);
+  editCounts.set(day, (editCounts.get(day) ?? 0) + 1);
+}
+const dayMs = 24 * 60 * 60 * 1000;
+const today = new Date(`${chinaDay(new Date())}T00:00:00Z`);
+const firstDay = today.getTime() - 125 * dayMs;
+const activity = `<div class="activity-chart"><div class="activity-weekdays"><span>一</span><span>三</span><span>五</span></div><div class="activity-grid">${Array.from({ length: 18 }, (_, week) =>
+  `<div class="activity-week">${Array.from({ length: 7 }, (_, day) => {
+    const date = new Date(firstDay + (week * 7 + day) * dayMs).toISOString().slice(0, 10);
+    const count = editCounts.get(date) ?? 0;
+    const level = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : 3;
+    return `<span class="activity-day level-${level}" title="${date} · ${count} 篇笔记的最后编辑日期" aria-label="${date}：${count} 篇"></span>`;
+  }).join('')}</div>`).join('')}</div></div>`;
 const homePath = path.join(dist, 'index.html');
-const home = await fs.readFile(homePath, 'utf8');
-const start = '<!-- NOTION_POSTS_START -->';
-const end = '<!-- NOTION_POSTS_END -->';
-const marker = `${start}${cards.join('')}${end}`;
-const updated = home.includes(start)
-  ? home.replace(new RegExp(`${start}[\\s\\S]*?${end}`), marker)
-  : home.replace('<div class="channel-grid" id="notion-collections"></div>', `<div class="channel-grid" id="notion-collections">${marker}</div>`);
-if (updated === home && !home.includes(start)) throw new Error('Homepage insertion point not found.');
-await fs.writeFile(homePath, updated);
+let home = await fs.readFile(homePath, 'utf8');
+function replaceSlot(name, html) {
+  const start = `<!-- ${name}_START -->`;
+  const end = `<!-- ${name}_END -->`;
+  if (!home.includes(start) || !home.includes(end)) throw new Error(`Homepage slot ${name} not found.`);
+  home = home.replace(new RegExp(`${start}[\\s\\S]*?${end}`), `${start}${html}${end}`);
+}
+replaceSlot('PROFILE_STATS', `<strong>${trees.length}</strong> 个专栏 · <strong>${entries.size}</strong> 篇笔记`);
+replaceSlot('COLLECTIONS', collections);
+replaceSlot('FEATURED', featured);
+replaceSlot('ACTIVITY', activity);
+replaceSlot('RECENT', recent);
+await fs.writeFile(homePath, home);
 console.log(`Published ${entries.size} approved Notion pages across ${trees.length} sections.`);
 

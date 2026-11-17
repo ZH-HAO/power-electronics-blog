@@ -3,38 +3,64 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#f6f3eb">
-  <meta name="description" content="Wayney 的电力电子与图论学习笔记，从 Notion 同步的两个公开专栏。">
-  <title>开关之间｜电力电子与图论学习笔记</title>
+  <meta name="theme-color" content="#f6f8fa">
+  <meta name="description" content="ZH-HAO 的个人学习笔记：电力电子与图论，从 Notion 同步的公开知识库。">
+  <title>ZH-HAO · 学习手记</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="shell nav-wrap">
-      <a class="logo" href="index.html" aria-label="开关之间 首页"><span class="logo-mark">∿</span><span>开关之间<small>LEARNING NOTES</small></span></a>
-      <button class="menu-button" aria-label="打开导航" aria-expanded="false">☰</button>
-      <nav class="nav-links" aria-label="主导航">
-        <a href="power-electronics/index.html">电力电子</a>
-        <a href="graph-theory/index.html">图论</a>
-      </nav>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="index.html" aria-label="ZH-HAO 学习手记首页"><span class="brand-mark">ZH</span><span>ZH-HAO <span class="brand-slash">/</span> learning-notes</span></a>
+      <a class="header-github" href="https://github.com/ZH-HAO" target="_blank" rel="noopener">GitHub 主页 ↗</a>
     </div>
   </header>
-  <main>
-    <section class="shell landing-hero">
-      <div class="eyebrow">WAYNEY / LEARNING JOURNAL</div>
-      <h1>把学习过程，<br><em>写成自己的笔记。</em></h1>
-      <p>这里整理我在 Notion 中记录的电力电子与图论知识。每个专栏都从原笔记同步，方便按主题阅读。</p>
-    </section>
-    <section class="shell landing-sections" id="articles">
-      <div class="landing-heading">
-        <div class="eyebrow">CATEGORIES / 专栏</div>
-        <h2>选择一个方向开始阅读</h2>
-      </div>
-      <div class="channel-grid" id="notion-collections"></div>
-    </section>
+  <nav class="tabbar" aria-label="主要栏目">
+    <div class="shell tab-inner">
+      <a class="tab active" href="index.html" aria-current="page">◫ <span>概览</span></a>
+      <a class="tab" href="power-electronics/index.html">⌁ <span>电力电子</span></a>
+      <a class="tab" href="graph-theory/index.html">◇ <span>图论</span></a>
+    </div>
+  </nav>
+  <main class="shell profile-layout">
+    <aside class="profile-sidebar" aria-label="个人简介">
+      <img class="profile-avatar" src="avatar.png" alt="ZH-HAO 的 GitHub 头像" width="260" height="260">
+      <div class="profile-names"><h1>zhouwenhao</h1><p>ZH-HAO</p></div>
+      <p class="profile-bio">记录电力电子与图论的学习、推导和修正。</p>
+      <a class="profile-button" href="https://github.com/ZH-HAO" target="_blank" rel="noopener">访问 GitHub 主页 ↗</a>
+      <div class="profile-stats"><!-- PROFILE_STATS_START --><strong>2</strong> 个专栏 · <strong>24</strong> 篇笔记<!-- PROFILE_STATS_END --></div>
+      <div class="profile-meta"><span class="meta-icon">⌂</span> 个人学习博客</div>
+      <div class="profile-meta"><span class="meta-icon">↗</span> <a href="https://github.com/ZH-HAO/power-electronics-blog" target="_blank" rel="noopener">博客源码</a></div>
+    </aside>
+    <div class="profile-content" id="articles">
+      <section class="dashboard-section">
+        <div class="section-heading"><h2>置顶专栏</h2><span>从 Notion 同步</span></div>
+        <div class="pinned-grid"><!-- COLLECTIONS_START -->
+          <a class="repo-card" href="power-electronics/index.html"><div class="repo-card-head"><span class="repo-icon">⌁</span><span class="repo-name">电力电子</span><span class="public-badge">公开</span></div><p>DC-DC 基础、Buck 仿真与非隔离型变换器笔记</p><div class="repo-card-foot"><span class="topic-dot power"></span>电力电子 <span>·</span> 6 篇笔记</div></a>
+          <a class="repo-card" href="graph-theory/index.html"><div class="repo-card-head"><span class="repo-icon">◇</span><span class="repo-name">图论</span><span class="public-badge">公开</span></div><p>图论课件整理、符号速查、定理归纳与作业</p><div class="repo-card-foot"><span class="topic-dot graph"></span>图论 <span>·</span> 18 篇笔记</div></a>
+        <!-- COLLECTIONS_END --></div>
+      </section>
+      <section class="dashboard-section">
+        <div class="section-heading"><h2>精选笔记</h2><span>从两个专栏中选读</span></div>
+        <div class="pinned-grid"><!-- FEATURED_START --><!-- FEATURED_END --></div>
+      </section>
+      <section class="dashboard-section">
+        <div class="section-heading"><h2>笔记更新</h2><span>过去 18 周</span></div>
+        <div class="activity-panel">
+          <p>按每篇笔记的最后编辑日期统计，便于回看最近整理的内容。</p>
+          <div class="activity-scroll"><!-- ACTIVITY_START --><!-- ACTIVITY_END --></div>
+          <div class="activity-legend"><span>少</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><span>多</span></div>
+        </div>
+      </section>
+      <section class="dashboard-section recent-section">
+        <div class="section-heading"><h2>最近更新</h2><span>Notion 最后编辑时间</span></div>
+        <div class="recent-list"><!-- RECENT_START --><!-- RECENT_END --></div>
+      </section>
+    </div>
   </main>
-  <footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">返回顶部 ↑</a></div></footer>
+  <footer class="footer"><div class="shell footer-inner"><span>© 2026 ZH-HAO · 学习手记</span><span>电力电子 · 图论</span></div></footer>
 </body>
 </html>
 

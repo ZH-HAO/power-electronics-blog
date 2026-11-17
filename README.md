@@ -1,6 +1,6 @@
-# 开关之间｜学习笔记
+# ZH-HAO｜学习手记
 
-公开博客：https://zh-hao.github.io/power-electronics-blog/
+公开博客：https://zh-hao.github.io/power-electronics-blog/ 。首页采用个人资料、置顶专栏和最近更新的布局；正文仅来自已授权的 Notion 页面树。
 
 电力电子目录：https://zh-hao.github.io/power-electronics-blog/power-electronics/
 
