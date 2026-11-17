@@ -41,7 +41,7 @@ async function children(id) {
 }
 function richText(items = []) {
   return items.map(item => {
-    let content = item.type === 'equation' ? `<span class="inline-equation">${escapeHtml(item.equation.expression)}</span>` : escapeHtml(item.plain_text ?? item.text?.content ?? '');
+    let content = item.type === 'equation' ? `<span class="inline-equation">\\(${escapeHtml(item.equation.expression)}\\)</span>` : escapeHtml(item.plain_text ?? item.text?.content ?? '');
     const a = item.annotations ?? {};
     if (a.code) content = `<code>${content}</code>`;
     if (a.bold) content = `<strong>${content}</strong>`;
@@ -83,9 +83,23 @@ async function renderBlock(block, slug) {
     case 'quote': html = `<blockquote>${richText(value.rich_text)}</blockquote>`; break;
     case 'callout': html = `<aside class="note">${richText(value.rich_text)}</aside>`; break;
     case 'code': html = `<pre><code>${escapeHtml(value.rich_text?.map(x=>x.plain_text).join('') ?? '')}</code></pre>`; break;
-    case 'equation': html = `<div class="formula">${escapeHtml(value.expression)}</div>`; break;
+    case 'equation': html = `<div class="formula">\\[${escapeHtml(value.expression)}\\]</div>`; break;
     case 'divider': html = '<hr>'; break;
     case 'image': html = await imageHtml(block, slug); break;
+    case 'table': {
+      const rows = await children(block.id);
+      if (!rows.every(row => row.type === 'table_row')) throw new Error(`Unexpected table child in ${block.id}`);
+      const rowHtml = rows.map((row, rowIndex) => {
+        const cells = row.table_row.cells.map((cell, cellIndex) => {
+          const isHeader = (rowIndex === 0 && value.has_column_header) || (cellIndex === 0 && value.has_row_header);
+          const tag = isHeader ? 'th' : 'td';
+          const scope = isHeader ? ` scope="${rowIndex === 0 && value.has_column_header ? 'col' : 'row'}"` : '';
+          return `<${tag}${scope}>${richText(cell)}</${tag}>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+      return `<div class="article-table"><table><tbody>${rowHtml}</tbody></table></div>`;
+    }
     case 'child_page': case 'child_database': return ''; // Approval is per page, never recursive.
     default: throw new Error(`Unsupported Notion block type ${block.type} in ${block.id}; publication stopped.`);
   }
@@ -109,7 +123,7 @@ for (const entry of pages) {
   const title = pageTitle(page);
   const body = await renderBlocks(await children(entry.id), entry.slug);
   const description = escapeHtml(entry.summary || `${title}｜开关之间`);
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><title>${escapeHtml(title)}｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script></head><body><div class="reading-progress"></div><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>POWER ELECTRONICS NOTES</small></span></a><nav class="nav-links"><a href="../index.html#articles">文章</a><a href="../index.html#roadmap">学习路线</a><a href="../index.html#about">关于</a></nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="../index.html#articles">← 返回所有笔记</a><div class="eyebrow" style="margin-top:35px">NOTION / 已选公开笔记</div><h1>${escapeHtml(title)}</h1><p>${description}</p><div class="meta"><span>来源：经选择的 Notion 页面</span></div></div><div class="article-layout"><article class="article-body">${body}</article></div></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><title>${escapeHtml(title)}｜开关之间</title><link rel="stylesheet" href="../style.css"><script defer src="../app.js"></script><script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script></head><body><div class="reading-progress"></div><header class="site-header"><div class="shell nav-wrap"><a class="logo" href="../index.html"><span class="logo-mark">∿</span><span>开关之间<small>POWER ELECTRONICS NOTES</small></span></a><nav class="nav-links"><a href="../index.html#articles">文章</a><a href="../index.html#roadmap">学习路线</a><a href="../index.html#about">关于</a></nav></div></header><main class="shell"><div class="article-hero"><a class="back" href="../index.html#articles">← 返回所有笔记</a><div class="eyebrow" style="margin-top:35px">NOTION / 已选公开笔记</div><h1>${escapeHtml(title)}</h1><p>${description}</p><div class="meta"><span>来源：经选择的 Notion 页面</span></div></div><div class="article-layout"><article class="article-body">${body}</article></div></main><footer class="site-footer"><div class="shell foot-wrap"><p>© 2026 WAYNEY · 开关之间</p><a href="../index.html">返回首页 ↑</a></div></footer></body></html>`;
   await fs.writeFile(path.join(dist, 'notion', `${entry.slug}.html`), html);
   cards.push(`<a class="card" href="notion/${escapeHtml(entry.slug)}.html" data-category="Notion精选" data-title="${escapeHtml(title)}"><div class="card-num"><span>NOTION / 已选公开</span><span>Notion精选</span></div><h3>${escapeHtml(title)}</h3><p>${description}</p><div class="card-foot"><span>来自 Notion</span><span>阅读全文 ↗</span></div></a>`);
 }
