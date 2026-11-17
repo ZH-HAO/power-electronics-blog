@@ -10,7 +10,7 @@ Markdown 用于直接阅读；snapshot.json 保留网页构建所需的结构；
 - [DC-DC变流电路基础知识](dc-dc-basics.md)
 - [DC-DC BUCK电路仿真](buck-simulation-notes.md)
 - [非隔离型DC-DC变换器](non-isolated-dc-dc.md)
-- [单电感统一模型](single-inductor-model.md)
+- [B站——木秀于林UP主学习](single-inductor-model.md)
 - [双电感统一模型｜基本理论](dual-inductor-model.md)
 
 ## 图论

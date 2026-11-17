@@ -44,11 +44,11 @@
     {
       "id": "41a9d738588380b99045c4a4ace82f93",
       "slug": "single-inductor-model",
-      "title": "单电感统一模型",
+      "title": "B站——木秀于林UP主学习",
       "category": "电力电子",
       "parentId": "41a9d738588380819679f8ccc7f17270",
       "treeSlug": "power-electronics",
-      "updatedAt": "2026-11-17T09:18:00.000Z",
+      "updatedAt": "2026-11-17T13:58:00.000Z",
       "file": "single-inductor-model.md"
     },
     {
@@ -58,7 +58,7 @@
       "category": "电力电子",
       "parentId": "41a9d738588380819679f8ccc7f17270",
       "treeSlug": "power-electronics",
-      "updatedAt": "2026-11-17T08:47:00.000Z",
+      "updatedAt": "2026-11-17T12:47:00.000Z",
       "file": "dual-inductor-model.md"
     },
     {
@@ -244,6 +244,8 @@
   ],
   "assets": [
     "buck-simulation-notes-4039d7385883804a91a2fa50baf5d5b6.png",
+    "dual-inductor-model-41b9d7385883812aabf6f031cb16ee8f.png",
+    "dual-inductor-model-41b9d73858838171b87be7c700ebefaf.zip",
     "dual-inductor-model-41b9d738588381a3b460ef86181492d5.png",
     "graph-chapter-1-012b8dfe176448279fcb9a771ff96711.jpg",
     "graph-chapter-1-06add63eb878413d862e822508d8865d.jpg",
@@ -597,6 +599,10 @@
     "single-inductor-model-41a9d73858838041b027ef7350d8e523.png",
     "single-inductor-model-41a9d73858838083a19ded1d5116480b.png",
     "single-inductor-model-41a9d7385883808c8549eb9716f9f8c1.png",
-    "single-inductor-model-41a9d738588380f1be66fdab323dff03.png"
+    "single-inductor-model-41a9d738588380f1be66fdab323dff03.png",
+    "single-inductor-model-41b9d7385883803f813dd7d60b40eab3.png",
+    "single-inductor-model-41b9d73858838094a781ffc777787eb1.png",
+    "single-inductor-model-41b9d738588380d6813fe0521048d3ea.png",
+    "single-inductor-model-41b9d738588380f5a224cd898cdd9252.png"
   ]
 }
