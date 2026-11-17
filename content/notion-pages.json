@@ -1,4 +1,10 @@
 {
-  "pages": []
+  "pages": [
+    {
+      "id": "41a9d738-5883-80b9-9045-c4a4ace82f93",
+      "slug": "single-inductor-model",
+      "summary": "用伏秒平衡理解 Buck、Boost 与反相 Buck-Boost"
+    }
+  ]
 }
 
