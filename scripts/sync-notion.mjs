@@ -295,7 +295,7 @@ const end = '<!-- NOTION_POSTS_END -->';
 const marker = `${start}${cards.join('')}${end}`;
 const updated = home.includes(start)
   ? home.replace(new RegExp(`${start}[\\s\\S]*?${end}`), marker)
-  : home.replace('<div id="notion-collections"></div>', `<div id="notion-collections">${marker}</div>`);
+  : home.replace('<div class="channel-grid" id="notion-collections"></div>', `<div class="channel-grid" id="notion-collections">${marker}</div>`);
 if (updated === home && !home.includes(start)) throw new Error('Homepage insertion point not found.');
 await fs.writeFile(homePath, updated);
 console.log(`Published ${entries.size} approved Notion pages across ${trees.length} sections.`);
